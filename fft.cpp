@@ -2,6 +2,8 @@
 #include <fstream>
 #include <math.h>
 #include <string>
+#include <vector>
+#include "corwinFFT.cpp"
 
 using namespace std;
 
@@ -14,10 +16,10 @@ int main(int  argc, char * argv[])
 	int nValue;
 	int kValue;
 	float temp;
-
+	vector<float> values;
 
 	fin.open(argv[1]);
-	fout.open(outFileName(argv[1]));
+	fout.open(outFileName(argv[1]).c_str());
 
 	fin >> nValue;
 	fin >> kValue;
@@ -25,8 +27,18 @@ int main(int  argc, char * argv[])
 	fout << nValue << endl;
 	fout << kValue << endl;
 
+	int counter = 0;
+
 	while (fin >> temp)
 	{
+		values.push_back(temp);
+	
+		if(counter >= kValue)
+		{
+			//compute fft		
+
+		}
+		
 		fout << temp << endl;
 	}
 }
