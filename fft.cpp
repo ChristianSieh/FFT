@@ -62,7 +62,6 @@ string outFileName(string inFileName)
 	return test;
 }
 
-
 void fft(complex <double> a[], int n, complex < double > y[],
   direction dir)
   {
