@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include <cmath>
 #include <complex>
-#include <vector>
+#include <algorithm>
 
 using namespace std;
 
@@ -149,13 +149,6 @@ int main(int  argc, char * argv[])
 
 	print_polynomial(y, n, total);
 
-	fout << "y array: " << endl;	
-
-	for(int i = 0; i < n; i++)
-	{
-		//fout << y[i] << endl;
-	}
-
 	complex <double> newAVal = 0;
 	double temp = 0;
 	complex <double> omega = cos(-2.0 * M_PI / n) + I * sin(-2.0 * M_PI / n);
@@ -165,11 +158,8 @@ int main(int  argc, char * argv[])
 	{
 		fin >> temp;
 		newAVal = temp;
-		complex <double> x = 1;	
-		
-		cout << "k: " << k << endl;	
-		cout << "newAVal: " << newAVal << endl;
-	
+		complex <double> x = 1;		
+
 		//For each y value
 		for(int j = 0; j < n; j++)
 		{
@@ -202,8 +192,7 @@ int main(int  argc, char * argv[])
 
 	for(int i = 0; i < (n/2); i++)
 	{
-	//	if(abs(total[i]) > 30)
-			fout << total[i] << endl;
+		fout << total[i] << endl;
 	}
 
 	fout << "Normal Total: " << endl;
@@ -213,9 +202,21 @@ int main(int  argc, char * argv[])
 		if(abs(normalTotal[i]) > 30)
 			fout << normalTotal[i] << endl;
 	}
-	//Find 5 highest
-	//Sort?
-	//5 value array and just store largest?
+
+	int index[5] = {0};
+	complex <double> maxima[5] = {0};
+
+	for(int i = 0; i < (n/2); i++)
+	{
+		if(abs(normalTotal[i]) > abs(maxima[4]))
+		{
+			maxima[4] = normalTotal[i];
+			index[4] = i;
+
+			sort(index, index+5);
+			sort(maxima, maxima+5);			
+		}
+	}
 }
 
 ////////////////////////////////////////////////////////////////////
