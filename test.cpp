@@ -40,13 +40,10 @@ void complex_round(complex <double> a[], int n)
 
 void print_polynomial(complex <double> a[], int n, complex <double> total[])
 {
-	for (int i = 0; i < n / 2; i++)  // just print first 6
+	for (int i = 0; i < n / 2; i++)
 	{
 		total[i] += abs(a[i]);
-		cout << abs(a[i]) << "  ";
 	}	 
-
-	cout << endl;
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -111,11 +108,9 @@ string outFileName(string inFileName)
 
 int main(int  argc, char * argv[])
 {
-	cout << "WTF" << endl;
 	double   a_real[MAX];
 	complex  <double> a[MAX];
 	complex  <double> b[MAX] = { 0 };
-	int i;
 	ifstream fin;
 	ofstream fout;
 	int n;
@@ -123,21 +118,27 @@ int main(int  argc, char * argv[])
 	complex  <double> y[MAX] = { 0 };
 
 	fin.open(argv[1]);
+	
+	if(!fin)
+		cout << "Input file failed to open" << endl;
+	
 	fout.open(outFileName(argv[1]).c_str());
+
+	if(!fout)
+		cout << "Output file failed to open" << endl;
 
 	fin >> n;
 	fin >> k;
 
 	complex <double> * total = new complex <double> [n/2];
 
-	cout << "test" << endl;
+	fout << "a[]: " << endl;
 
-	cout << "n = " << n << endl;
-
-	for (i = 0; i < n; i++)
+	for (int i = 0; i < n; i++)
 	{
 		fin >> a_real[i];
 		a[i] = a_real[i];
+		//fout << a[i] << endl;
 	}
 
 	// Do forward FFT
@@ -146,25 +147,35 @@ int main(int  argc, char * argv[])
 	// Clean up result by setting small values to zero
 	complex_round(y, n);
 
-	cout << "Forward FFT:    ";
 	print_polynomial(y, n, total);
+
+	fout << "y array: " << endl;	
+
+	for(int i = 0; i < n; i++)
+	{
+		//fout << y[i] << endl;
+	}
 
 	complex <double> newAVal = 0;
 	double temp = 0;
 	complex <double> omega = cos(-2.0 * M_PI / n) + I * sin(-2.0 * M_PI / n);
 
-	//for each a value up through k a values
+	//for each 'a' value up through 'k' 'a values'
 	for(int i = 1; i < k; i++)
 	{
 		fin >> temp;
 		newAVal = temp;
 		complex <double> x = 1;	
 		
+		cout << "k: " << k << endl;	
+		cout << "newAVal: " << newAVal << endl;
+	
 		//For each y value
 		for(int j = 0; j < n; j++)
 		{
-			y[j] = (y[j] - a[i] + newAVal) / x;
-			
+			//cout << "Omega[" << j << "]: " << x << endl;
+			y[j] = ((y[j] - a[i-1] + newAVal) / x);
+				
 			x = x * omega;		
 		}
 		
@@ -187,7 +198,21 @@ int main(int  argc, char * argv[])
 			total[i + 1] + total[i + 2];
 	}	
 
-	
+	fout << "Total: " << endl;
+
+	for(int i = 0; i < (n/2); i++)
+	{
+	//	if(abs(total[i]) > 30)
+			fout << total[i] << endl;
+	}
+
+	fout << "Normal Total: " << endl;
+
+	for(int i = 0; i < (n/2); i++)
+	{
+		if(abs(normalTotal[i]) > 30)
+			fout << normalTotal[i] << endl;
+	}
 	//Find 5 highest
 	//Sort?
 	//5 value array and just store largest?
