@@ -38,12 +38,12 @@ void complex_round(complex <double> a[], int n)
 //                     print a complex polynomial                 //
 ////////////////////////////////////////////////////////////////////
 
-void print_polynomial(complex <double> a[], int n)
+void print_polynomial(complex <double> a[], int n, complex <double> total[])
 {
 	for (int i = 0; i < n / 2; i++)  // just print first 6
 	{
-		if(abs(a[i]) > 8)
-			cout << abs(a[i]) << "  ";
+		total[i] += abs(a[i]);
+		cout << abs(a[i]) << "  ";
 	}	 
 
 	cout << endl;
@@ -111,6 +111,7 @@ string outFileName(string inFileName)
 
 int main(int  argc, char * argv[])
 {
+	cout << "WTF" << endl;
 	double   a_real[MAX];
 	complex  <double> a[MAX];
 	complex  <double> b[MAX] = { 0 };
@@ -118,7 +119,7 @@ int main(int  argc, char * argv[])
 	ifstream fin;
 	ofstream fout;
 	int n;
-	int k;
+	double k;
 	complex  <double> y[MAX] = { 0 };
 
 	fin.open(argv[1]);
@@ -127,7 +128,9 @@ int main(int  argc, char * argv[])
 	fin >> n;
 	fin >> k;
 
-	complex <double> * total = new complex <double> [k];
+	complex <double> * total = new complex <double> [n/2];
+
+	cout << "test" << endl;
 
 	cout << "n = " << n << endl;
 
@@ -144,14 +147,50 @@ int main(int  argc, char * argv[])
 	complex_round(y, n);
 
 	cout << "Forward FFT:    ";
-	print_polynomial(y, n);
+	print_polynomial(y, n, total);
 
 	complex <double> newAVal = 0;
+	double temp = 0;
+	complex <double> omega = cos(-2.0 * M_PI / n) + I * sin(-2.0 * M_PI / n);
 
-	while (fin >> newAVal.real)
+	//for each a value up through k a values
+	for(int i = 1; i < k; i++)
 	{
-
+		fin >> temp;
+		newAVal = temp;
+		complex <double> x = 1;	
+		
+		//For each y value
+		for(int j = 0; j < n; j++)
+		{
+			y[j] = (y[j] - a[i] + newAVal) / x;
+			
+			x = x * omega;		
+		}
+		
+		//Add absolute total
+		print_polynomial(y, n, total);
 	}
+
+	for(int i = 0; i < n/2; i++)
+	{
+		total[i] = total[i] / k;
+	}
+
+
+	complex <double> * normalTotal = new complex <double> [n/2];
+
+	//Add points
+	for(int i = 3; i < (n/2) - 3; i++)
+	{
+		normalTotal[i] = total[i - 2] + total[i - 1] + total[i] +
+			total[i + 1] + total[i + 2];
+	}	
+
+	
+	//Find 5 highest
+	//Sort?
+	//5 value array and just store largest?
 }
 
 ////////////////////////////////////////////////////////////////////
