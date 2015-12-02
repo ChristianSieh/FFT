@@ -1,9 +1,11 @@
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <cstdlib>
 #include <cmath>
 #include <complex>
 #include <algorithm>
+#include <vector>
 
 using namespace std;
 
@@ -12,11 +14,24 @@ const double EPSILON = 1.0e-12;
 const complex<double> I (0, 1);
 enum  direction {FORWARD, INVERSE};
 
+//Struct that will be used to find the 5 amplitudes
+struct doubleIndex
+{
+	double x;
+	int index;
+
+	bool operator<(doubleIndex other) const
+	{
+		return x > other.x;
+	}
+};
+
 ////////////////////////////////////////////////////////////////////
 // complex_round - just set to zero values that are very small    //
 //             makes output easier to read                        //
 ////////////////////////////////////////////////////////////////////
-
+//Author: Dr. Edward Corwin
+//Removes very small numbers from a complex type
 void complex_round(complex <double> a[], int n)
 {
 	float  x;
@@ -37,8 +52,8 @@ void complex_round(complex <double> a[], int n)
 ////////////////////////////////////////////////////////////////////
 //                     print a complex polynomial                 //
 ////////////////////////////////////////////////////////////////////
-
-void print_polynomial(complex <double> a[], int n, complex <double> total[])
+//Total up the absolute values in array a and add to total array
+void addToTotal(complex <double> a[], int n, complex <double> total[])
 {
 	for (int i = 0; i < n / 2; i++)
 	{
@@ -49,7 +64,9 @@ void print_polynomial(complex <double> a[], int n, complex <double> total[])
 ////////////////////////////////////////////////////////////////////
 //                        FFT based on CLRS page 911              //
 ////////////////////////////////////////////////////////////////////
-
+//Author: Dr. Edward Corwin
+//Computes the FFT for the numbers given in array a up to values n
+//and puts the output in array y
 void fft(complex <double> a[], int n, complex <double> y[],
   direction dir)
 {
@@ -106,6 +123,23 @@ string outFileName(string inFileName)
 
 ////////////////////////////////////////////////////////////////////
 
+/*
+Author: Christian Sieh
+Class: CSC372
+Assignment: Program #3 FFT
+Date: 12/1/2015
+Usage: fft.cpp file.in
+
+This program will read in a nValue (number of points in FFT) and
+a kValue (number of FFTs to compute) and then the file must have
+at least n + k points which will be used to compute the multiple
+FFTs. The first FFT is computed using the first n points using
+Dr. Edward Corwin's FFT code. Then the values outputted by that
+FFT are used to compute the next k-1 FFTs. This is done in order
+to save time by not having to compute every FFT. Finally, this
+program will output the 5 largest "amplitude" values alone with
+their index.
+*/
 int main(int  argc, char * argv[])
 {
 	double   a_real[MAX];
@@ -132,13 +166,11 @@ int main(int  argc, char * argv[])
 
 	complex <double> * total = new complex <double> [n/2];
 
-	fout << "a[]: " << endl;
-
+	//Read in all of our initial values
 	for (int i = 0; i < n; i++)
 	{
 		fin >> a_real[i];
 		a[i] = a_real[i];
-		//fout << a[i] << endl;
 	}
 
 	// Do forward FFT
@@ -147,7 +179,7 @@ int main(int  argc, char * argv[])
 	// Clean up result by setting small values to zero
 	complex_round(y, n);
 
-	print_polynomial(y, n, total);
+	addToTotal(y, n, total);
 
 	complex <double> newAVal = 0;
 	double temp = 0;
@@ -170,52 +202,54 @@ int main(int  argc, char * argv[])
 		}
 		
 		//Add absolute total
-		print_polynomial(y, n, total);
+		addToTotal(y, n, total);
 	}
 
+	//Divide the total array by k to get the average
 	for(int i = 0; i < n/2; i++)
 	{
 		total[i] = total[i] / k;
 	}
 
-
 	complex <double> * normalTotal = new complex <double> [n/2];
 
-	//Add points
+	//Add the 2 points before and after the local maxima
 	for(int i = 3; i < (n/2) - 3; i++)
 	{
-		normalTotal[i] = total[i - 2] + total[i - 1] + total[i] +
-			total[i + 1] + total[i + 2];
+		if(real(total[i-2]) < real(total[i]) && real(total[i-1]) 
+			< real(total[i]) && real(total[i]) > 
+			real(total[i+1]) && real(total[i]) >
+			real(total[i+2]))
+		{
+			normalTotal[i] = total[i - 2] + total[i - 1] 
+				+ total[i] + total[i + 1] + total[i + 2];
+		}
 	}	
 
-	fout << "Total: " << endl;
+	vector <doubleIndex> real;
 
+	//Switch the complex array into a doubleIndex array
+	//This method of finding the 5 largest values might
+	//not be the fastest but it has simple syntax
 	for(int i = 0; i < (n/2); i++)
 	{
-		fout << total[i] << endl;
+		doubleIndex temp;
+
+		temp.x = normalTotal[i].real();
+		temp.index = i;
+
+		real.push_back(temp);
 	}
 
-	fout << "Normal Total: " << endl;
+	//sort the double index array
+	sort(real.begin(), real.end());
 
-	for(int i = 0; i < (n/2); i++)
+	//output the 5 largest values
+	for(int i = 0; i < 5; i++)
 	{
-		if(abs(normalTotal[i]) > 30)
-			fout << normalTotal[i] << endl;
-	}
-
-	int index[5] = {0};
-	complex <double> maxima[5] = {0};
-
-	for(int i = 0; i < (n/2); i++)
-	{
-		if(abs(normalTotal[i]) > abs(maxima[4]))
-		{
-			maxima[4] = normalTotal[i];
-			index[4] = i;
-
-			sort(index, index+5);
-			sort(maxima, maxima+5);			
-		}
+		fout << real[i].index << " ";
+		fout << fixed << setprecision(2);
+		fout << real[i].x << endl;
 	}
 }
 
